@@ -1,6 +1,6 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type Adapter } from "next-auth/adapters";
-import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { env } from "@/env";
 import { db } from "@/server/db";
 import NextAuth, { type Session, type DefaultSession } from "next-auth";
@@ -92,9 +92,43 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
-    GoogleProvider({
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    CredentialsProvider({
+      name: "Mock Google",
+      credentials: {
+        email: { label: "Email", type: "email", placeholder: "test@example.com" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (
+          credentials?.email === "test@example.com" &&
+          credentials?.password === "test"
+        ) {
+          // 自動 upsert mock user
+          await db.user.upsert({
+            where: { id: "mock-user-id" },
+            update: {},
+            create: {
+              id: "mock-user-id",
+              name: "Mock User",
+              email: "test@example.com",
+              image: "https://i.pravatar.cc/150?img=3",
+              hasAccess: true,
+              role: "ADMIN",
+              location: "Taipei"
+            },
+          });
+          return {
+            id: "mock-user-id",
+            name: "Mock User",
+            email: "test@example.com",
+            image: "https://i.pravatar.cc/150?img=3",
+            hasAccess: true,
+            role: "ADMIN",
+            location: "Taipei"
+          };
+        }
+        return null;
+      },
     }),
   ],
 });

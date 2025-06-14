@@ -166,11 +166,21 @@ For each outline point:
 Now create a complete XML presentation with {TOTAL_SLIDES} slides that significantly expands on the outline.
 `;
 
-const model = new ChatOpenAI({
-  modelName: "gpt-4o-mini",
-  temperature: 0.7,
-  streaming: true,
-});
+//const model = new ChatOpenAI({
+//   modelName: "gpt-4o-mini",
+//   temperature: 0.7,
+//   streaming: true,
+// });
+
+const model = new ChatOpenAI(
+    {
+      modelName: process.env.MODEL_NAME,
+      temperature: 0.7,
+      streaming: true,
+      openAIApiKey: process.env.OPENAI_API_KEY,
+      basePath: process.env.OPENAI_BASE_URL,
+    } as any // ✅ 將參數物件轉型為 any，避免 TS 報錯
+  );
 
 export async function POST(req: Request) {
   try {

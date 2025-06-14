@@ -1,9 +1,12 @@
 import { LangChainAdapter } from "ai";
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
+//import { ChatOpenAI } from "@langchain/community/chat_models/openai";
+import OpenAI from "openai";
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
+// import Configuration from "openai";
 
 interface OutlineRequest {
   prompt: string;
@@ -45,21 +48,27 @@ Make sure the topics:
 7. Keep each bullet point brief - just one sentence per point
 8. Include exactly 2-3 bullet points per topic (not more, not less)`;
 
+
 const outlineChain = RunnableSequence.from([
   PromptTemplate.fromTemplate(outlineTemplate),
-  new ChatOpenAI({
-    modelName: "gpt-4o-mini",
-    temperature: 0.7,
-    streaming: true,
-  }),
+
+  new ChatOpenAI(
+    {
+      modelName: process.env.MODEL_NAME,
+      temperature: 0.7,
+      streaming: true,
+      openAIApiKey: process.env.OPENAI_API_KEY,
+      basePath: process.env.OPENAI_BASE_URL,
+    } as any // ✅ 將參數物件轉型為 any，避免 TS 報錯
+  ),
 ]);
 
-export async function POST(req: Request) {
+export   async function POST(req: Request) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+     }
 
     const { prompt, numberOfCards, language } =
       (await req.json()) as OutlineRequest;

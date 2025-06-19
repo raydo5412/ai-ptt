@@ -1,3 +1,4 @@
+// src/app/_actions/presentation/presentationActions.ts
 "use server";
 
 import { type PlateSlide } from "@/components/presentation/utils/parser";
@@ -14,7 +15,7 @@ export async function createPresentation(
   outline?: string[],
   imageModel?: string,
   presentationStyle?: string,
-  language?: string
+  language?: string // 這個參數存在且會被保存
 ) {
   const session = await auth();
   if (!session?.user) {
@@ -35,7 +36,7 @@ export async function createPresentation(
             theme: theme,
             imageModel,
             presentationStyle,
-            language,
+            language, // 將 language 保存到資料庫
             outline: outline,
           },
         },
@@ -61,11 +62,13 @@ export async function createPresentation(
 
 export async function createEmptyPresentation(
   title: string,
-  theme = "default"
+  theme = "default",
+  language?: string // <--- 新增此參數
 ) {
   const emptyContent: { slides: PlateSlide[] } = { slides: [] };
 
-  return createPresentation(emptyContent, title, theme);
+  // 將 language 參數傳遞給 createPresentation
+  return createPresentation(emptyContent, title, theme, undefined, undefined, undefined, language);
 }
 
 export async function updatePresentation({

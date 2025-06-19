@@ -202,7 +202,7 @@ export async function POST(req: Request) {
     const prompt = PromptTemplate.fromTemplate(slidesTemplate);
     const stringOutputParser = new StringOutputParser();
     const chain = RunnableSequence.from([prompt, model, stringOutputParser]);
-
+    console.log("Generating presentation with language:", language);
     const stream = await chain.stream({
       TITLE: title,
       LANGUAGE: language,

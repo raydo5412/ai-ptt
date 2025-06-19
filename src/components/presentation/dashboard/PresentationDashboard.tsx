@@ -1,3 +1,4 @@
+// src/components/presentation/dashboard/PresentationDashboard.tsx
 "use client";
 
 import { Wand2, Plus } from "lucide-react";
@@ -9,7 +10,7 @@ import { PresentationInput } from "./PresentationInput";
 import { PresentationControls } from "./PresentationControls";
 import { PresentationTemplates } from "./PresentationTemplates";
 import { RecentPresentations } from "./RecentPresentations";
-import { PresentationExamples } from "./PresentationExamples";
+import { PresentationExamples } from "./PresentationExamples"; // <--- 新增這一行
 import { PresentationsSidebar } from "./PresentationsSidebar";
 import { useEffect } from "react";
 import { PresentationHeader } from "./PresentationHeader";
@@ -24,6 +25,7 @@ export function PresentationDashboard() {
     setIsGeneratingOutline,
     // We'll use these instead of directly calling startOutlineGeneration
     setShouldStartOutlineGeneration,
+    language,
   } = usePresentationState();
 
   useEffect(() => {
@@ -44,7 +46,9 @@ export function PresentationDashboard() {
 
     try {
       const result = await createEmptyPresentation(
-        presentationInput.substring(0, 50) || "Untitled Presentation"
+        presentationInput.substring(0, 50) || "Untitled Presentation",
+        undefined, // theme 參數
+        language // 將 language 傳遞給 createEmptyPresentation
       );
 
       if (result.success && result.presentation) {
@@ -68,7 +72,11 @@ export function PresentationDashboard() {
   const handleCreateBlank = async () => {
     try {
       setIsGeneratingOutline(true);
-      const result = await createEmptyPresentation("Untitled Presentation");
+      const result = await createEmptyPresentation(
+        "Untitled Presentation",
+        undefined, // theme 參數
+        language // 將 language 傳遞給 createEmptyPresentation
+      );
       if (result.success && result.presentation) {
         setCurrentPresentation(
           result.presentation.id,
@@ -118,7 +126,7 @@ export function PresentationDashboard() {
           </div>
         </div>
 
-        <PresentationExamples />
+        <PresentationExamples /> {/* 這裡使用了 PresentationExamples */}
         <RecentPresentations />
         <PresentationTemplates />
       </div>

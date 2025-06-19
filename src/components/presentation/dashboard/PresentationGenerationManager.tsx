@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCompletion } from "ai/react";
 import { toast } from "sonner";
 import { usePresentationState } from "@/states/presentation-state";
@@ -283,5 +283,60 @@ export function PresentationGenerationManager() {
     };
   }, []);
 
-  return null;
+  // === PDF 上傳與轉 Markdown UI ===
+  function PdfUpload() {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+    const { presentationInput, setPresentationInput } = usePresentationState();
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setUploading(true);
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const formData = new FormData();
+        formData.append("file", new Blob([arrayBuffer], { type: file.type }), file.name);
+        const res = await fetch("/api/pdf-to-md", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.markdown) {
+          const newInput = presentationInput ? presentationInput + "\n\n" + data.markdown : data.markdown;
+          setPresentationInput(newInput);
+          toast.success("PDF 已轉換並加入簡報內容");
+        } else {
+          toast.error("PDF 轉換失敗");
+        }
+      } catch (e) {
+        toast.error("PDF 上傳或轉換失敗");
+      } finally {
+        setUploading(false);
+        if (inputRef.current) inputRef.current.value = "";
+      }
+    };
+
+    return (
+      <div className="my-4">
+        <label className="block mb-2 font-medium">上傳 PDF 並自動轉為簡報內容：</label>
+        <input
+          type="file"
+          accept="application/pdf"
+          ref={inputRef}
+          onChange={handleFileChange}
+          disabled={uploading}
+          className="border p-2 rounded"
+        />
+        {uploading && <span className="ml-2 text-sm text-gray-500">轉換中...</span>}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* 主要功能不變，僅加上 PDF 上傳 UI */}
+      <PdfUpload />
+    </>
+  );
 }
